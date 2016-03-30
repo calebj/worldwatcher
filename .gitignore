@@ -1,0 +1,4 @@
+worldwatcher
+*.o # to avoid committing other binaries
+*~ # to avoid committing backups of files
+*.swp # to avoid committing swap files (created by vim)
