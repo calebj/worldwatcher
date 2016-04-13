@@ -17,8 +17,8 @@
    inkscape:version="0.91 r13725"
    sodipodi:docname="logo.svg"
    inkscape:export-filename="/home/caleb/School/TAMU/CSCE 121/worldwatcher/logo.png"
-   inkscape:export-xdpi="261.67001"
-   inkscape:export-ydpi="261.67001">
+   inkscape:export-xdpi="490.89999"
+   inkscape:export-ydpi="490.89999">
   <defs
      id="defs4">
     <filter
@@ -56,8 +56,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="5.6"
-     inkscape:cx="85.467737"
-     inkscape:cy="69.425757"
+     inkscape:cx="111.89631"
+     inkscape:cy="40.854328"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -86,7 +86,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>

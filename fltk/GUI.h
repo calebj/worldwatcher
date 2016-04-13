@@ -90,6 +90,13 @@ namespace Graph_lib {
         void attach(Window& win);
     };
 
+    struct Out_box_multi : Widget {
+        Out_box_multi(Point xy, int w, int h, const string& s)
+        :Widget(xy,w,h,s,0) { }
+        void put(int);
+        void put(const string&);
+        void attach(Window& win);
+    };
 //------------------------------------------------------------------------------
 
     struct Menu : Widget {
