@@ -40,11 +40,11 @@ namespace Graph_lib
 
         void set_label(const string& s) { copy_label(s.c_str()); }
 
+        void attach(Widget& w);
         void attach(Shape& s) { shapes.push_back(&s); }
-        void attach(Widget&);
 
-        void detach(Shape& s);     // remove s from shapes 
         void detach(Widget& w);    // remove w from window (deactivates callbacks)
+        void detach(Shape& s);     // remove s from shapes 
 
         void put_on_top(Shape& p); // put p on top of other shapes
 
@@ -53,6 +53,7 @@ namespace Graph_lib
 
     private:
         vector<Shape*> shapes;     // shapes attached to window
+        vector<Widget*> widgets;     // widgets attached to window
         int w,h;                   // window size
 
         void init();
