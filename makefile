@@ -1,29 +1,26 @@
-CXX     = g++     # the c compiler to use
-CXXFLAGS = -std=c++14        # common defines
-FLTK   = -lfltk -lfltk_images	# fltk libs
-FLTK_LOCATION = ./fltk/
+CC     = g++     # the c compiler to use
+DFLAGS = -std=c++14        # common defines
+FLTK   = -lfltk -lfltk_images	# fltk defines
 
-FLTK_OBJS = Graph.o GUI.o Simple_window.o Window.o
-
-BINS = worldwatcher
-
-all: $(BINS)
+all: main
 
 clean:
-	rm $(FLTK_OBJS) $(BINS)
+	rm -f *.o
 
 # ==== FLTK LIBRARY ====
-Graph.o: $(FLTK_LOCATION)/Graph.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+Graph.o: Graph.cpp
+	$(CC) $(DFLAGS) -c -o $@ $<
 	
-GUI.o: $(FLTK_LOCATION)/GUI.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+GUI.o: GUI.cpp
+	$(CC) $(DFLAGS) -c -o $@ $<
 	
-Simple_window.o: $(FLTK_LOCATION)/Simple_window.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+Simple_window.o: Simple_window.cpp
+	$(CC) $(DFLAGS) -c -o $@ $<
 	
-Window.o: $(FLTK_LOCATION)/Window.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+Window.o: Window.cpp
+	$(CC) $(DFLAGS) -c -o $@ $<
 
-worldwatcher: worldwatcher.cpp $(FLTK_OBJS)
-	$(CXX) $(CXXFLAGS) $(FLTK) -o $@ $(FLTK_OBJS) worldwatcher.cpp
+# ==== MAIN FILE ====
+main: Graph.o GUI.o Simple_window.o Window.o
+	$(CC) $(DFLAGS) $(FLTK) yoon_project.cpp Graph.o GUI.o Simple_window.o Window.o
+
