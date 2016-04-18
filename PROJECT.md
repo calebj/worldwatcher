@@ -13,6 +13,6 @@ Restrictions:
 Approach:
 -We began by using a service called GIT, which easily combines the coding of each individiual member into one master code.
 
-
+i want to fucking kill myself.
 
 
