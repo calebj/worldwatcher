@@ -300,6 +300,8 @@ struct Circle : Shape {
 
 	Point center() const;
 
+        void moveto(Point p) {set_point(0,Point(p.x-r,p.y-r));}
+
 	void set_radius(int rr) { set_point(0,Point(center().x-rr,center().y-rr)); r=rr;  }
 	int radius() const { return r; }
 private:

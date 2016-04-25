@@ -1,5 +1,5 @@
 CXX     = g++     # the c compiler to use
-CXXFLAGS = -std=c++14        # common defines
+CXXFLAGS = -std=c++14 -g       # common defines
 FLTK   = -lfltk -lfltk_images	# fltk libs
 FLTK_LOCATION = ./fltk/
 

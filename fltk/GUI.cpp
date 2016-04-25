@@ -5,6 +5,9 @@
 //
 
 #include <FL/Fl.H>
+#include <FL/Fl_Counter.H>
+#include <FL/Fl_Simple_Counter.H>
+#include <FL/Fl_Slider.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Output.H>
 #include <FL/Fl_Multiline_Output.H>
@@ -17,6 +20,16 @@ namespace Graph_lib {
 void Button::attach(Window& win)
 {
     pw = new Fl_Button(loc.x, loc.y, width, height, label.c_str());
+    pw->callback(reinterpret_cast<Fl_Callback*>(do_it), &win); // pass the window
+    own = &win;
+}
+
+//------------------------------------------------------------------------------
+
+void Counter::attach(Window& win)
+{
+    pv = new Fl_Simple_Counter(loc.x, loc.y, width, height, label.c_str());
+    pw = (Fl_Widget*)pv;
     pw->callback(reinterpret_cast<Fl_Callback*>(do_it), &win); // pass the window
     own = &win;
 }

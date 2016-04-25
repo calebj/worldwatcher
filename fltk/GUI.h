@@ -7,6 +7,7 @@
 #ifndef GUI_GUARD
 #define GUI_GUARD
 
+#include <FL/Fl_Valuator.H>
 #include "Window.h"
 #include "Graph.h"
 
@@ -33,14 +34,17 @@ namespace Graph_lib {
     public:
         Widget(Point xy, int w, int h, const string& s, Callback cb)
             : loc(xy), width(w), height(h), label(s), do_it(cb)
-        {}
+            {}
 
         virtual void move(int dx,int dy) { hide(); pw->position(loc.x+=dx, loc.y+=dy); show(); }
+        virtual void moveto(Point xy) { hide(); pw->position(xy.x, xy.y); show(); }
+        virtual void color(Color bg) {pw->color(bg.as_int()); }
         virtual void hide() { pw->hide(); }
         virtual void show() { pw->show(); }
         virtual void attach(Window&) = 0;
         void redraw() { pw->redraw(); }
         void draw() { pw->draw(); }
+        void box(Fl_Boxtype b) {pw->box(b);}
 
         Point loc;
         int width;
@@ -57,13 +61,38 @@ namespace Graph_lib {
         Widget& operator=(const Widget&); // don't copy Widgets
         Widget(const Widget&);
     };
+    
+    class Valuator : public Widget {
+    public:
+        Valuator(Point xy, int w, int h, const string& label, Callback cb)
+            : Widget(xy,w,h,label,cb) {}
+
+        void step(double s) { pv->step(s); };
+        void bounds(double min, double max) {pv->bounds(min,max); } ;
+        void value(double v) { pv->value(v); }
+        double value() {return pv->value(); };
+        void type(uchar t) { pv->type(t); }
+
+    protected:
+        Fl_Valuator* pv;
+    };
+
+//------------------------------------------------------------------------------
+
+    struct Counter : Valuator {
+        Counter(Point xy, int w, int h, const string& label, Callback cb)
+        : Valuator(xy,w,h,label,cb)
+        {}
+
+        void attach(Window&);
+    };
 
 //------------------------------------------------------------------------------
 
     struct Button : Widget {
         Button(Point xy, int w, int h, const string& label, Callback cb)
             : Widget(xy,w,h,label,cb)
-        {}
+            {}
 
         void attach(Window&);
     };
