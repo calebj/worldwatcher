@@ -6,13 +6,16 @@ Authors:
 * Each member did a fair share of work.
 
 Problem:
--Bames Jond is a secret agent attempting to calculate best positioning of satellites to survey the planet in its entirety with the most efficiency.
+
+Bames Jond is a secret agent attempting to calculate best positioning of satellites to survey the planet in its entirety with the most efficiency.
 
 Restrictions:
--However,  He only has access to 2-8 satellites and must position them accurately to survey the most possible land around sperical earth.
+
+However,  He only has access to 2-8 satellites and must position them accurately to survey the most possible land around sperical earth.
 
 Approach:
--We began by using a service called GIT, which easily combines the coding of each individiual member into one master code. We created a master .cpp file titled worldwatcher which contained the master code for the window and multiple attatchments for the game. The FLTK files were modified slightly in order to accomidate certain aspects such as attatching a button over an image. 
+
+We began by using a service called GIT, which easily combines the coding of each individiual member into one master code. We created a master .cpp file titled worldwatcher which contained the master code for the window and multiple attatchments for the game. The FLTK files were modified slightly in order to accomidate certain aspects such as attatching a button over an image. 
 
 Sample Run:
 
