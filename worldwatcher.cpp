@@ -202,13 +202,14 @@ private:
     Vector<Text*> scorelines;
     Counter difficulty_widget;
     Image logo, bg, gamemap, instructions_text, difficulty_label;
-    Button start_button, help_button, scores_button, mainmenu_button;
+    Button start_button, help_button, scores_button, mainmenu_button, quit_game;
 
     static void cb_start(Address, Address);
     static void cb_help(Address, Address);
     static void cb_scores(Address, Address);
     static void cb_main(Address, Address);
     static void cb_difficulty(Address, Address);
+    static void cb_endgame(Address, Address);
 };
 
 void Game_window::update_sideinfo() {
@@ -295,7 +296,7 @@ void Game_window::display_scores() {
     vector<Score> scores = read_highscores();
     scorelines = {};
     if (scores.size() == 0)
-        scorelines.push_back(new Text(Point{startx, starty}, "No high scores recorded."));
+        scorelines.push_back(new Text(Point{startx, starty}, "No high scores."));
     else {
         scorelines.push_back(new Text(Point{startx, starty}, "High scores:"));
         int y=starty + spacing;
@@ -340,7 +341,9 @@ void Game_window::game_over() {
     int score = maxdist_satellites(satellites)*difficulty;
     vector<Score> scores = read_highscores();
     if ((!scores.empty() && score > scores.back().score) || scores.size() < NUM_SCORES) {
-        const char* initials = fl_input("Congratulations, you made a high score! Enter your initials to save it.");
+        char* initials = (char*)fl_input("Congratulations, you made a high score! Enter your initials to save it.");
+        while(strlen(initials) > 4 && initials != 0)
+            initials = (char*)fl_input("That's too long; please enter up to four characters.");
         if (initials != 0) {
             scores.push_back(Score{score, initials});
             write_highscores(scores);
@@ -354,9 +357,14 @@ void Game_window::game_over() {
 //     undisplay_game();
 }
 
+void Game_window::cb_endgame(Address, Address pw) {
+    reference_to<Game_window>(pw).game_over();
+}
+
 void Game_window::display_game(int difficulty) {
 
     attach(gamemap);
+    attach(quit_game);
     satellites = {};
     for (int i=0; i<difficulty; ++i) {
         Satellite* sat = new Satellite {i+1};
@@ -400,6 +408,7 @@ void Game_window::display_game(int difficulty) {
 
 void Game_window::undisplay_game() {
     detach(gamemap);
+    detach(quit_game);
     detach(timer_display);
     detach(moves_left_display);
     detach(score_display);
@@ -447,6 +456,7 @@ Game_window::Game_window(Point xy, int w, int h, const string& title):
     difficulty_widget{Point{x_max()/2 - 192/2 + 192 - 88, y_max() - 2*(48/2 + 48) + 20}, 88, 24, "Difficulty", cb_difficulty},
     difficulty_label{Point{x_max()/2 - 192/2 + 192 - 88, y_max() - 2*(48/2 + 48)}, "difficulty_label.png",Graph_lib::Suffix::png},
     gamemap{MAP_UL, "mercator-projection.jpg", Graph_lib::Suffix::jpg},
+    quit_game{Point{x_max() - (x_max() - MAP_W)/2 - 192/2, y_max() - (48/2 + 48)}, 192,48, "End game", cb_endgame},
     timer_display{Point{MAP_W + 10, 72}, "--:--"},
     moves_left_display{Point{MAP_W + 10, 108}, "-- moves left"},
     score_display{Point{MAP_W + 10, 144}, "Score:  -----"},
