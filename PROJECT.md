@@ -7,7 +7,7 @@ Authors:
 
 Problem:
 
-Bames Jond is a secret agent attempting to calculate best positioning of satellites to survey the planet in its entirety with the most efficiency.
+You are a secret agent attempting to calculate best positioning of satellites to survey the planet in its entirety with the most efficiency.
 
 Restrictions:
 
@@ -15,7 +15,7 @@ However,  He only has access to 2-8 satellites and must position them accurately
 
 Approach:
 
-We began by using a service called GIT, which easily combines the coding of each individiual member into one master code. We created a master .cpp file titled worldwatcher which contained the master code for the window and multiple attatchments for the game. The FLTK files were modified slightly in order to accomidate certain aspects such as attatching a button over an image. 
+We began by using a service called GIT, which easily combines the coding of each individiual member into one master code. We created a master .cpp file titled worldwatcher which contained the master code for the window and multiple attatchments for the game. The FLTK files were modified slightly in order to accomidate certain aspects such as attatching a button over an image and PNG support.
 
 Sample Run:
 
@@ -29,7 +29,7 @@ This program shows that the FLTK/GUI aspects of C++ are capable of creating and 
 
 Instructions:
 
-Complile the code using the makefile included in the CD/folder and run using ./a.out. All instructions on how to work the game itslef are included in the "How to play" section.
+Complile the code using the makefile included in the CD/folder and run using ./a.out. All instructions on how to work the game itself are included in the "How to play" section.
 
 Program Code:
 
