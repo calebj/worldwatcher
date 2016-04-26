@@ -55,17 +55,22 @@ vector<Score> read_highscores() {
         ++i;
         scores.push_back(s);
     }
+    // Sort in descending order
     sort(scores.begin(), scores.end(),greater<Score>());
     return scores;
 }
 
 void write_highscores(vector<Score> scores) {
     ofstream ofs {"scores.txt"};
-    sort(scores.begin(), scores.end(),greater<Score>());
-    if (scores.size() > NUM_SCORES)
-        scores.resize(NUM_SCORES);
-    for(Score s : scores)
-        ofs << s.initials << " " << s.score << "\n";
+    if(!ofs)
+        cout << "Error writing scores file\n";
+    else {
+        sort(scores.begin(), scores.end(),greater<Score>());
+        if (scores.size() > NUM_SCORES)
+            scores.resize(NUM_SCORES);
+        for(Score s : scores)
+            ofs << s.initials << " " << s.score << "\n";
+        }
 }
 
 void cb_sat_activate(void*, void*); // Declare only
@@ -99,6 +104,9 @@ public:
     void move_east(int a)  {move(0, a);}
     void move_west(int a)  {move(0, -a);}
     void move(int, int);
+    void hint(bool);
+    void select();
+
     int get_number() {return num;}
     latlong get_position() {return position;}
 };
@@ -114,6 +122,14 @@ Point Satellite::getxy_offset() {
 
 void Satellite::updateViz() {
     viz->moveto(getxy_offset());
+    Fl::redraw();
+}
+
+void Satellite::hint(bool on) {
+    if(on)
+        viz->color(SAT_HINT);
+    else
+        viz->color(SAT_COLOR);
     Fl::redraw();
 }
 
@@ -154,16 +170,55 @@ double greatcircledist(latlong p1, latlong p2) {
 }
 
 int maxdist_satellites(vector<Satellite*> s) {
+    if (s.size() < 2)
+        return 0;
     double maxdist = 0;
     for (Satellite* i:s) {
         for (Satellite* j:s) {
             double d = greatcircledist(i->get_position(), j->get_position());
-            d *= EARTH_RADIUS;
             if (d > maxdist)
                 maxdist = d;
         }
     }
-    return maxdist;
+    return EARTH_RADIUS*maxdist;
+}
+
+int mindist_satellites(vector<Satellite*> s) {
+    if (s.size() < 2)
+        return 0;
+    // initialize with first two
+    double min = greatcircledist(s[0]->get_position(), s[1]->get_position());
+    for (Satellite* i:s) {
+        for (Satellite* j:s) {
+            if(i!=j) {
+                double d = greatcircledist(i->get_position(), j->get_position());
+                if (d < min)
+                    min = d;
+            }
+        }
+    }
+    return EARTH_RADIUS*min;
+}
+
+// return a pointer to the satellite that is closest to its neighbors
+Satellite* hint_satellite (vector<Satellite*> s) {
+    if (s.size() < 2)
+        return 0;
+    Satellite* candidate;
+    double min;
+    // initialize with first two
+    double sumdist;
+    for (Satellite* i:s) {
+        sumdist = 0;
+        for (Satellite* j:s) {
+            sumdist += greatcircledist(i->get_position(), j->get_position());
+        }
+        if(i == s[0] || sumdist < min) {
+            min = sumdist;
+            candidate = i;
+        }
+    }
+    return candidate;
 }
 
 struct Game_window : Graph_lib::Window {
@@ -185,6 +240,7 @@ struct Game_window : Graph_lib::Window {
     Vector<Satellite*> satellites;
     Satellite* selected_sat;
 
+    void show_hint();
     void show_compass(Satellite*);
     void hide_compass();
 
@@ -203,7 +259,7 @@ private:
     Vector<Text*> scorelines;
     Counter difficulty_widget;
     Image logo, bg, gamemap, instructions_text, difficulty_label;
-    Button start_button, help_button, scores_button, mainmenu_button, quit_game;
+    Button start_button, help_button, scores_button, mainmenu_button, quit_game, hint_button;
 
     static void cb_start(Address, Address);
     static void cb_help(Address, Address);
@@ -211,6 +267,7 @@ private:
     static void cb_main(Address, Address);
     static void cb_difficulty(Address, Address);
     static void cb_endgame(Address, Address);
+    static void cb_hint(Address, Address);
 };
 
 void Game_window::update_sideinfo() {
@@ -225,7 +282,7 @@ void Game_window::update_sideinfo() {
     moves_left_display.set_label(ss.str());
 
     ss.str("");
-    ss << "Score:  " << setfill('0') << setw(5) << maxdist_satellites(satellites)*difficulty;
+    ss << "Score:  " << setfill('0') << setw(5) << mindist_satellites(satellites)*difficulty;
     score_display.set_label(ss.str());
 
     Fl::redraw();
@@ -345,7 +402,7 @@ void Game_window::game_over(bool manual) {
         if(!fl_ask("Are you sure?"))
             return;
     Fl::remove_timeout(gametimer);
-    int score = maxdist_satellites(satellites)*difficulty;
+    int score = mindist_satellites(satellites)*difficulty;
     vector<Score> scores = read_highscores();
     if ((!scores.empty() && score > scores.back().score) || scores.size() < NUM_SCORES) {
         char* initials = (char*)fl_input("Congratulations, you made a high score! Enter your initials to save it.");
@@ -358,22 +415,35 @@ void Game_window::game_over(bool manual) {
         } else
             set_action(4);
     } else {
-        if(!manual)
-            fl_alert("Game over!");
-        set_action(4);
+        if(!manual) {
+            if(fl_ask("Game over! Play again?"))
+                set_action(1);
+            else
+                set_action(4);
+        }
     }
     Fl::redraw();
-//     undisplay_game();
 }
 
 void Game_window::cb_endgame(Address, Address pw) {
     reference_to<Game_window>(pw).game_over(true);
 }
 
-void Game_window::display_game(int difficulty) {
+void Game_window::cb_hint(Address, Address pw) {
+    reference_to<Game_window>(pw).show_hint();
+}
 
+void Game_window::show_hint() {
+    Satellite *hint = hint_satellite(satellites);
+    hint->hint(true);
+    time_remaining -= 5; // penalty
+    update_sideinfo();
+}
+
+void Game_window::display_game(int difficulty) {
     attach(gamemap);
     attach(quit_game);
+    attach(hint_button);
     satellites = {};
     for (int i=0; i<difficulty; ++i) {
         Satellite* sat = new Satellite {i+1};
@@ -418,6 +488,7 @@ void Game_window::display_game(int difficulty) {
 void Game_window::undisplay_game() {
     detach(gamemap);
     detach(quit_game);
+    detach(hint_button);
     detach(timer_display);
     detach(moves_left_display);
     detach(score_display);
@@ -466,6 +537,7 @@ Game_window::Game_window(Point xy, int w, int h, const string& title):
     difficulty_label{Point{x_max()/2 - 192/2 + 192 - 88, y_max() - 2*(48/2 + 48)}, "difficulty_label.png",Graph_lib::Suffix::png},
     gamemap{MAP_UL, "mercator-projection.jpg", Graph_lib::Suffix::jpg},
     quit_game{Point{x_max() - (x_max() - MAP_W)/2 - 192/2, y_max() - (48/2 + 48)}, 192,48, "End game", cb_endgame},
+    hint_button{Point{x_max() - (x_max() - MAP_W)/2 - 192/2, y_max() - 2*(48/2 + 32)}, 192,32, "Hint", cb_hint},
     timer_display{Point{MAP_W + 10, 72}, "--:--"},
     moves_left_display{Point{MAP_W + 10, 108}, "-- moves left"},
     score_display{Point{MAP_W + 10, 144}, "Score:  -----"},
@@ -514,6 +586,8 @@ void Game_window::hide_compass() {
 
 void Game_window::show_compass(Satellite* sat) {
     hide_compass();
+    for(Satellite* s : satellites)
+        s->hint(false);
     selected_sat = sat;
     Point p = sat->getxy_offset();
     int sp = 32;
@@ -530,12 +604,16 @@ void Game_window::show_compass(Satellite* sat) {
     Fl::redraw();
 }
 
+void Satellite::select() {
+    hint(false);
+}
+
 void cb_sat_activate(Address w, Address pw) {
     string label(static_cast<Fl_Widget*>(w)->label());
     Game_window* win = (Game_window*)pw;
     int i = stoi(label)-1;
     Satellite* sat = win->satellites[i];
-    win->hide_compass();
+    sat->select();
     win->show_compass(sat);
 }
 
@@ -553,25 +631,25 @@ int main() {
 //             if (action == 0)
 //                 cout << "User quit\n";
 
+            if(lastaction == 1)
+                win.undisplay_game();
             if(action == 1)
                 win.display_game(win.difficulty);
-            else if(lastaction == 1)
-                win.undisplay_game();
 
+            if(lastaction == 2)
+                win.undisplay_instructions();
             if(action == 2)
                 win.display_instructions();
-            else if(lastaction == 2)
-                win.undisplay_instructions();
 
+            if (lastaction == 3)
+                win.undisplay_scores();
             if(action == 3)
                 win.display_scores();
-            else if (lastaction == 3)
-                win.undisplay_scores();
 
+            if (lastaction == 4)
+                win.undisplay_home();
             if(action == 4)
                 win.display_home();
-            else if (lastaction == 4)
-                win.undisplay_home();
 
             Fl::redraw();
         }
