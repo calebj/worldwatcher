@@ -193,6 +193,7 @@ struct Game_window : Graph_lib::Window {
     int moves_left;
     void update_sideinfo();
     void game_over();
+    void game_over(bool);
 
 private:
     int action = 4;
@@ -337,20 +338,28 @@ void gametimer(void* pw) {
 }
 
 void Game_window::game_over() {
+    game_over(false);
+}
+void Game_window::game_over(bool manual) {
+    if(manual)
+        if(!fl_ask("Are you sure?"))
+            return;
     Fl::remove_timeout(gametimer);
     int score = maxdist_satellites(satellites)*difficulty;
     vector<Score> scores = read_highscores();
     if ((!scores.empty() && score > scores.back().score) || scores.size() < NUM_SCORES) {
         char* initials = (char*)fl_input("Congratulations, you made a high score! Enter your initials to save it.");
-        while(strlen(initials) > 4 && initials != 0)
+        while(initials != 0 && strlen(initials) > 4)
             initials = (char*)fl_input("That's too long; please enter up to four characters.");
         if (initials != 0) {
             scores.push_back(Score{score, initials});
             write_highscores(scores);
-        }
-        set_action(3);
+            set_action(3);
+        } else
+            set_action(4);
     } else {
-        fl_alert("Game over!");
+        if(!manual)
+            fl_alert("Game over!");
         set_action(4);
     }
     Fl::redraw();
@@ -358,7 +367,7 @@ void Game_window::game_over() {
 }
 
 void Game_window::cb_endgame(Address, Address pw) {
-    reference_to<Game_window>(pw).game_over();
+    reference_to<Game_window>(pw).game_over(true);
 }
 
 void Game_window::display_game(int difficulty) {
