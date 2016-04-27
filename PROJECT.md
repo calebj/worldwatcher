@@ -29,7 +29,7 @@ This program shows that the FLTK/GUI aspects of C++ are capable of creating and 
 
 Instructions:
 
-Complile the code using the makefile included in the CD/folder and run using ./worldwatcher when in the worldwatcher directory. The make file should contain the modified FLTK and GUI files as well as the worldwatcher.cpp file, if the code refuses to compile this may be the problem. All instructions on how to work the game itself are included in the "How to play" section.
+Complile the code using the makefile included in the CD/folder and run using ./worldwatcher when in the worldwatcher directory. The make file should contain the modified FLTK and GUI files as well as the worldwatcher.cpp file, if the code refuses to compile check the makefile to see if this holds true. All instructions on how to work the game itself are included in the "How to play" section.
 
 Program Code:
 
