@@ -361,7 +361,6 @@ void Game_window::display_scores() {
         for (Score s:scores) {
             stringstream ss;
             int pad = width - to_string(s.score).size() - s.initials.size();
-            cout << pad << "\n";
             ss << s.initials << setfill(' ') << setw(pad) << "" << s.score;
             Text* t = new Text(Point{startx, y}, ss.str());
             scorelines.push_back(t);
@@ -406,22 +405,21 @@ void Game_window::game_over(bool manual) {
     vector<Score> scores = read_highscores();
     if ((!scores.empty() && score > scores.back().score) || scores.size() < NUM_SCORES) {
         char* initials = (char*)fl_input("Congratulations, you made a high score! Enter your initials to save it.");
-        while(initials != 0 && strlen(initials) > 4)
-            initials = (char*)fl_input("That's too long; please enter up to four characters.");
+        while(initials != 0 && (strlen(initials) > 3 || strlen(initials) == 0))
+            initials = (char*)fl_input("Invalid entry. Please enter one to three characters.");
         if (initials != 0) {
             scores.push_back(Score{score, initials});
             write_highscores(scores);
             set_action(3);
-        } else
-            set_action(4);
+            return;
+        }
     } else {
-        if(!manual) {
-            if(fl_ask("Game over! Play again?"))
-                set_action(1);
-            else
-                set_action(4);
+        if(!manual and fl_ask("Game over! Play again?")) {
+            set_action(1);
+            return;
         }
     }
+    set_action(4);
     Fl::redraw();
 }
 
@@ -436,8 +434,11 @@ void Game_window::cb_hint(Address, Address pw) {
 void Game_window::show_hint() {
     Satellite *hint = hint_satellite(satellites);
     hint->hint(true);
-    time_remaining -= 5; // penalty
+    time_remaining -= 5*difficulty; // penalty
+    moves_left -= 1;
     update_sideinfo();
+    if(time_remaining <= 0)
+        game_over();
 }
 
 void Game_window::display_game(int difficulty) {
