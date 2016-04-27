@@ -19,6 +19,9 @@ We began by using a service called GIT, which easily combines the coding of each
 
 Sample Run:
 
+The code of the game is on difficulty 4 (4 satellites)
+
+
 Results and Analysis:
 
 The project was successful. All basic aspects of the project were covered as well as the extra items. The high scores menu contains the top 5 scores, the game works in all difficutlties and the spehrical coordinates/wraparound are incredibly accurate. The game clock properly concatinates to the difficulty level and the score multiplier is also on point. The hint button shows the user the best move to make due by shading the satellite that should be moved next to obtain a higher score. 
