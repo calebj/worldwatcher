@@ -27,9 +27,9 @@ namespace Graph_lib
     class Window : public Fl_Window { 
     public:
         // let the system pick the location:
-        Window(int w, int h, const string& title);
+        Window(int w, int h, const string& title, const bool& resizable=true);
         // top left corner in xy
-        Window(Point xy, int w, int h, const string& title);    
+        Window(Point xy, int w, int h, const string& title, const bool& resizable=true);
 
         virtual ~Window() { }
 
@@ -56,7 +56,7 @@ namespace Graph_lib
         vector<Widget*> widgets;     // widgets attached to window
         int w,h;                   // window size
 
-        void init();
+        void init(const bool& resizable);
     };
 
 //------------------------------------------------------------------------------

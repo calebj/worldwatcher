@@ -8,6 +8,7 @@
 #define GUI_GUARD
 
 #include <FL/Fl_Valuator.H>
+#include <FL/Fl_Button.H>
 #include "Window.h"
 #include "Graph.h"
 
@@ -75,6 +76,22 @@ namespace Graph_lib {
 
     protected:
         Fl_Valuator* pv;
+    };
+
+    class SButton : public Widget {
+    public:
+        SButton(Point xy, int w, int h, const string& label, Callback cb)
+        : Widget(xy,w,h,label,cb)
+        {}
+        // Create with keyboard shortcut
+        SButton(Point xy, int w, int h, const string& label, Callback cb, uint key)
+        : Widget(xy,w,h,label,cb), key(key) {}
+        void attach(Window&);
+        void shortcut(uint key);
+        uint shortcut() const;
+    private:
+        Fl_Button* pb;
+        uint key = 0;
     };
 
 //------------------------------------------------------------------------------

@@ -26,6 +26,25 @@ void Button::attach(Window& win)
 
 //------------------------------------------------------------------------------
 
+void SButton::attach(Window& win) {
+    pb = new Fl_Button(loc.x, loc.y, width, height, label.c_str());
+    if (key != 0)
+        pb->shortcut(key);
+    pw = (Fl_Widget*)pb;
+    pw->callback(reinterpret_cast<Fl_Callback*>(do_it), &win); // pass the window
+    own = &win;
+}
+
+uint SButton::shortcut() const {
+    return pb->shortcut();
+}
+
+void SButton::shortcut(uint key) {
+    pb->shortcut(key);
+}
+
+//------------------------------------------------------------------------------
+
 void Counter::attach(Window& win)
 {
     pv = new Fl_Simple_Counter(loc.x, loc.y, width, height, label.c_str());

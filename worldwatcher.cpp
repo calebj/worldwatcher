@@ -46,9 +46,9 @@ struct Score {
 };
 
 
-vector<Score> read_highscores() {
+vector<Score> read_highscores(const string& path) {
     vector<Score> scores;
-    ifstream ifs {"scores.txt"};
+    ifstream ifs {path};
     int i=0;
     Score s;
     while (ifs >> s.initials >> s.score and i<NUM_SCORES) {
@@ -60,8 +60,8 @@ vector<Score> read_highscores() {
     return scores;
 }
 
-void write_highscores(vector<Score> scores) {
-    ofstream ofs {"scores.txt"};
+void write_highscores(const string& path, vector<Score> scores) {
+    ofstream ofs {path};
     if(!ofs)
         cout << "Error writing scores file\n";
     else {
@@ -89,12 +89,15 @@ class Satellite {
     int num;
     void updateViz();
 public:
-    Button* viz;
+    SButton* viz;
     Satellite(int satnum) {
         position.latitude = rand() % (2*MAX_LAT) - MAX_LAT;
         position.longitude = rand() % 360 - 180;
         num = satnum;
-        viz = new Button {getxy_offset(), 2*SAT_RADIUS, 2*SAT_RADIUS, to_string(num), cb_sat_activate};
+        char numcode = 48; // ASCII 0
+        numcode += satnum;
+        viz = new SButton {getxy_offset(), 2*SAT_RADIUS, 2*SAT_RADIUS, 
+                           to_string(num), cb_sat_activate, numcode};
     }
     Point getxy();
     Point getxy_offset();
@@ -222,7 +225,7 @@ Satellite* hint_satellite (vector<Satellite*> s) {
 }
 
 struct Game_window : Graph_lib::Window {
-    Game_window(Point xy, int w, int h, const string& title);
+    Game_window(Point xy, int w, int h, const string& title, const string& path);
     int wait_for_button();
     void set_action(int);
     int get_action() { return action; }
@@ -251,15 +254,18 @@ struct Game_window : Graph_lib::Window {
     void game_over();
     void game_over(bool);
 
+    const string path;
+
 private:
     int action = 4;
 
     Text timer_display, moves_left_display, score_display, best_score_display;
-    Vector<Button*> compass;
+    Vector<SButton*> compass;
     Vector<Text*> scorelines;
     Counter difficulty_widget;
     Image logo, bg, gamemap, instructions_text, difficulty_label;
-    Button start_button, help_button, scores_button, mainmenu_button, quit_game, hint_button;
+    SButton hint_button;
+    Button start_button, help_button, scores_button, mainmenu_button, quit_game;
 
     static void cb_start(Address, Address);
     static void cb_help(Address, Address);
@@ -351,7 +357,7 @@ void Game_window::display_scores() {
     int starty = 160;
     int width = 12;
     int spacing = 60;
-    vector<Score> scores = read_highscores();
+    vector<Score> scores = read_highscores(path + "scores.txt");
     scorelines = {};
     if (scores.size() == 0)
         scorelines.push_back(new Text(Point{startx, starty}, "No high scores."));
@@ -402,14 +408,14 @@ void Game_window::game_over(bool manual) {
             return;
     Fl::remove_timeout(gametimer);
     int score = mindist_satellites(satellites)*difficulty;
-    vector<Score> scores = read_highscores();
+    vector<Score> scores = read_highscores(path + "scores.txt");
     if ((!scores.empty() && score > scores.back().score) || scores.size() < NUM_SCORES) {
         char* initials = (char*)fl_input("Congratulations, you made a high score! Enter your initials to save it.");
         while(initials != 0 && (strlen(initials) > 3 || strlen(initials) == 0))
             initials = (char*)fl_input("Invalid entry. Please enter one to three characters.");
         if (initials != 0) {
             scores.push_back(Score{score, initials});
-            write_highscores(scores);
+            write_highscores(path + "scores.txt", scores);
             set_action(3);
             return;
         }
@@ -476,7 +482,7 @@ void Game_window::display_game(int difficulty) {
     score_display.set_font_size(30);
     attach(score_display);
 
-    vector<Score> hs = read_highscores();
+    vector<Score> hs = read_highscores(path + "scores.txt");
     if (hs.size() > 0) {
         stringstream ss;
         ss << "Best:   " << setfill('0') << setw(5) << hs[0].score;
@@ -524,29 +530,30 @@ void Game_window::cb_difficulty(Address w, Address pw) {
     reference_to<Game_window>(pw).difficulty = d;
 }
 
-Game_window::Game_window(Point xy, int w, int h, const string& title):
-    Window{xy,w,h,title},
+Game_window::Game_window(Point xy, int w, int h, const string& title, const string& path):
+    Window{xy,w,h,title,false},
     // logo is 920px wide
-    logo{Point{x_max()/2-920/2,96}, "logo.png", Graph_lib::Suffix::png},
-    bg{Point{0,0}, "world-map-background.jpg", Graph_lib::Suffix::jpg},
+    logo{Point{x_max()/2-920/2,96}, path + "logo.png", Graph_lib::Suffix::png},
+    bg{Point{0,0}, path + "world-map-background.jpg", Graph_lib::Suffix::jpg},
     start_button{Point{x_max()/2 - 192/2, y_max() - 2*(48/2 + 48)}, 88, 48, "Start game", cb_start},
     help_button{Point{x_max()/2 - 88 - 8, y_max() - 48/2 - 48}, 88, 24, "How to play", cb_help},
     scores_button{Point{x_max()/2 + 8, y_max() - 48/2 - 48}, 88, 24, "High scores", cb_scores},
     mainmenu_button{Point{x_max()/2 - 192/2, y_max() - (48/2 + 48)}, 192, 48, "Main menu", cb_main},
-    instructions_text{Point{48,48}, "instructions.png", Graph_lib::Suffix::png},
+    instructions_text{Point{48,48}, path + "instructions.png", Graph_lib::Suffix::png},
     difficulty_widget{Point{x_max()/2 - 192/2 + 192 - 88, y_max() - 2*(48/2 + 48) + 20}, 88, 24, "Difficulty", cb_difficulty},
-    difficulty_label{Point{x_max()/2 - 192/2 + 192 - 88, y_max() - 2*(48/2 + 48)}, "difficulty_label.png",Graph_lib::Suffix::png},
-    gamemap{MAP_UL, "mercator-projection.jpg", Graph_lib::Suffix::jpg},
+    difficulty_label{Point{x_max()/2 - 192/2 + 192 - 88, y_max() - 2*(48/2 + 48)}, path + "difficulty_label.png",Graph_lib::Suffix::png},
+    gamemap{MAP_UL, path + "mercator-projection.jpg", Graph_lib::Suffix::jpg},
     quit_game{Point{x_max() - (x_max() - MAP_W)/2 - 192/2, y_max() - (48/2 + 48)}, 192,48, "End game", cb_endgame},
-    hint_button{Point{x_max() - (x_max() - MAP_W)/2 - 192/2, y_max() - 2*(48/2 + 32)}, 192,32, "Hint", cb_hint},
+    hint_button{Point{x_max() - (x_max() - MAP_W)/2 - 192/2, y_max() - 2*(48/2 + 32)}, 192,32, "Hint", cb_hint, 'h'},
     timer_display{Point{MAP_W + 10, 72}, "--:--"},
     moves_left_display{Point{MAP_W + 10, 108}, "-- moves left"},
     score_display{Point{MAP_W + 10, 144}, "Score:  -----"},
-    best_score_display{Point{MAP_W + 10, 180}, "Best:   -----"}
+    best_score_display{Point{MAP_W + 10, 180}, "Best:   -----"},
+    path{path}
     {
         attach(bg);
         display_home();
-}
+    }
 
 void cb_compass(Address w, Address pw) {
     string dir(static_cast<Fl_Widget*>(w)->label());
@@ -578,7 +585,7 @@ void cb_compass(Address w, Address pw) {
 }
 
 void Game_window::hide_compass() {
-    for(Button* b : compass)
+    for(SButton* b : compass)
     {
         detach(*b);
     }
@@ -594,11 +601,11 @@ void Game_window::show_compass(Satellite* sat) {
     int sp = 32;
     int wh = 2*SAT_RADIUS;
     compass = {};
-    compass.push_back(new Button(Point(p.x,p.y-sp),wh,wh,"N",cb_compass));
-    compass.push_back(new Button(Point(p.x,p.y+sp),wh,wh,"S",cb_compass));
-    compass.push_back(new Button(Point(p.x-sp,p.y),wh,wh,"W",cb_compass));
-    compass.push_back(new Button(Point(p.x+sp,p.y),wh,wh,"E",cb_compass));
-    for(Button* b:compass)
+    compass.push_back(new SButton(Point(p.x,p.y-sp),wh,wh,"N",cb_compass, 'w'));
+    compass.push_back(new SButton(Point(p.x,p.y+sp),wh,wh,"S",cb_compass, 's'));
+    compass.push_back(new SButton(Point(p.x-sp,p.y),wh,wh,"W",cb_compass, 'a'));
+    compass.push_back(new SButton(Point(p.x+sp,p.y),wh,wh,"E",cb_compass, 'd'));
+    for(SButton* b:compass)
     {
         attach(*b);
     }
@@ -619,11 +626,20 @@ void cb_sat_activate(Address w, Address pw) {
 }
 
 
-int main() {
+int main(int numArgs, char *args[]) {
     try {
+        // Window parameters
         const int win_width = 1280;
         const int win_height = 720;
-        Game_window win(Point(100,200),win_width,win_height,"WorldWatcher 2");
+
+        // Get executable's path
+        const string aux(args[0]);
+        const int psep = aux.rfind('/');
+        const string path = aux.substr(0,psep+1);
+        const string name = aux.substr(psep+1);
+
+        Game_window win(Point(100,200), win_width, win_height,
+                        "WorldWatcher 2", path);
         win.callback(window_callback);
         int action = 4; // homescreen
         while (action != 0) {

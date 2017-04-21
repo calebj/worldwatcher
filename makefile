@@ -1,10 +1,20 @@
-CXX     = g++     # the c compiler to use
-CXXFLAGS = -std=c++14 -g       # common defines
-FLTK   = -lfltk -lfltk_images	# fltk libs
+CXX     = g++
+# common defines
+FLTK_DIST = ./fltk-1.3.3/
+# -static-libgcc -Wl,-static
+CXXFLAGS = -std=c++14 -Wall
+#-I$(FLTK_DIST)
+
+# Dynamically link libraries./fltk-1.3.3//lib/fltk_images.a
+FLTK_LIBS = fltk fltk_images
+FLTK   = $(addprefix -l,$(FLTK_LIBS))
+
+# Static link libraries
+#FLTK_LIBS = $(addsuffix .a,fltk fltk_images)
+#FLTK   = $(addprefix $(FLTK_DIST)/lib/lib,$(FLTK_LIBS))
+
 FLTK_LOCATION = ./fltk/
-
-FLTK_OBJS = Graph.o GUI.o Simple_window.o Window.o
-
+FLTK_OBJS = Graph.o GUI.o Window.o
 BINS = worldwatcher
 
 all: $(BINS)
